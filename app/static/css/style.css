@@ -1,0 +1,23 @@
+body{
+background-color: rgb(0, 0, 0);
+}
+
+.pesquisar{
+background-color: white;
+margin-top: 33%;
+width: 600px;
+margin-left: 26%;
+right: 200px;
+border-radius: 15px;
+}
+input{
+    border-radius: 15px;
+    width: 99%;
+}
+button{
+    margin-left: 45%;
+}
+h1{
+    color: white;
+   
+}
