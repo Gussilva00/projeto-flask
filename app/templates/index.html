@@ -1,37 +1,132 @@
-
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro&display=swap" rel="stylesheet">
+    <title>The Harvester Web</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <title>OsintxHunter</title>
-</head>
 </head>
 <body>
+    <div class="container">
+        <header>
+            <h1>🔍 The Harvester Web</h1>
+            <p>Pesquisa inteligente de ativos digitais</p>
+        </header>
 
-  <header>
-    <nav>
-      <ul>
-        <li><a href="#">Página Principal</a></li>
-        <li><a href="#">Sobre Nós</a></li>
-      </ul>
-    </nav>
-  </header>
+        <div class="scan-area">
+            <input type="text" id="domain" placeholder="exemplo.com" value="exemplo.com">
+            <button id="scan-btn">Iniciar Varredura</button>
+            <div class="suggestions">
+                <span>Tente:</span>
+                <button class="suggestion-btn" data-domain="google.com">google.com</button>
+                <button class="suggestion-btn" data-domain="microsoft.com">microsoft.com</button>
+            </div>
+        </div>
 
-  <div class="letreiro">
-    <h1>OsintxHunter</h1>
-  </div>
+        <div id="results" class="results-container"></div>
+    </div>
 
-  <div class="pesquisar">
-    <input type="text" placeholder="Digite aqui..." />
-    <button>Pesquisar</button>
-  </div>
-
-  <footer>
-    <p>&copy; 2025 TheHarvester</p>
-  </footer>
-
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const domainInput = document.getElementById('domain');
+            const scanBtn = document.getElementById('scan-btn');
+            const resultsDiv = document.getElementById('results');
+            
+            // Sugestões de domínio
+            document.querySelectorAll('.suggestion-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    domainInput.value = btn.dataset.domain;
+                });
+            });
+            
+            // Varredura
+            scanBtn.addEventListener('click', async () => {
+                const domain = domainInput.value.trim();
+                if (!domain) return;
+                
+                resultsDiv.innerHTML = `
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Varrendo ${domain}...</p>
+                        <small>Isso pode levar alguns minutos</small>
+                    </div>
+                `;
+                
+                try {
+                    const response = await fetch('/api/harvester/scan', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ domain })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.error) throw new Error(data.error);
+                    
+                    resultsDiv.innerHTML = `
+                        <h2>Resultados para ${domain}</h2>
+                        ${renderResults(data)}
+                    `;
+                } catch (error) {
+                    resultsDiv.innerHTML = `
+                        <div class="error">
+                            <h3>Erro na varredura</h3>
+                            <p>${error.message}</p>
+                            <button onclick="location.reload()">Tentar novamente</button>
+                        </div>
+                    `;
+                }
+            });
+            
+            function renderResults(data) {
+                let html = '';
+                
+                // Seção de hosts
+                if (data.hosts?.length > 0) {
+                    html += `
+                        <div class="result-section">
+                            <h3>🏠 Hosts Encontrados (${data.hosts.length})</h3>
+                            <ul>
+                                ${data.hosts.map(host => `<li>${host}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `;
+                }
+                
+                // Seção de emails
+                if (data.emails?.length > 0) {
+                    html += `
+                        <div class="result-section">
+                            <h3>✉️ Emails Encontrados (${data.emails.length})</h3>
+                            <ul>
+                                ${data.emails.map(email => `<li>${email}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `;
+                }
+                
+                if (!html) {
+                    html = `
+                        <div class="no-results">
+                            <p>Nenhum resultado encontrado. Tente:</p>
+                            <ul>
+                                <li>Usar um domínio diferente</li>
+                                <li>Adicionar chaves API no servidor</li>
+                                <li>Verificar o console para detalhes</li>
+                            </ul>
+                            ${data.raw_output ? `
+                            <details>
+                                <summary>Saída Completa</summary>
+                                <pre>${data.raw_output}</pre>
+                            </details>
+                            ` : ''}
+                        </div>
+                    `;
+                }
+                
+                return html;
+            }
+        });
+    </script>
 </body>
 </html>
