@@ -1,5 +1,8 @@
 flask==2.3.2
-flask-cors==3.0.10
-theHarvester==4.8.0
+theharvester==4.8.0
 python-dotenv==1.0.0
+flask-cors==3.0.10
+requests==2.31.0
 chardet==5.1.0
+concurrent-log-handler==0.9.24
+pathlib2==2.3.7.post1  # Para compatibilidade com Python < 3.10

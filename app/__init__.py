@@ -1,15 +1,18 @@
-from flask import Flask
+from flask import Flask, render_template
 from flask_cors import CORS
-from .routes import main_bp
-from .harvester import harvester_bp  # Importação corrigida
 
 def create_app():
     app = Flask(__name__)
     CORS(app)
     
-    app.config['SECRET_KEY'] = 'sua_chave_secreta'
+    # Importar DEPOIS de criar o app para evitar imports circulares
+    from app.scanner.core import harvester_bp
     
-    app.register_blueprint(main_bp)
+    # Registrar blueprint
     app.register_blueprint(harvester_bp, url_prefix='/api/harvester')
+    
+    @app.route('/')
+    def index():
+        return render_template('index.html')
     
     return app
